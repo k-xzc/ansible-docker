@@ -1,0 +1,38 @@
+- name: Install docker
+  yum: name=docker
+
+- name: Create file system from mount volume
+  filesystem:
+    fstype: xfs
+    dev: /dev/xvdb
+
+- name: Creates directory
+  file:
+    path: /docker-data
+    state: directory
+
+- name: Mount new file system to data
+  mount:
+    path: /docker-data
+    src: /dev/xvdb
+    fstype: xfs
+    state: present
+
+- name: Remove docker-storage file
+  file:
+    path: /etc/sysconfig/docker-storage
+    state: absent
+
+- name: Re Create docker-storage file
+  copy: 
+   dest: /etc/sysconfig/docker-storage
+   content: |
+    DOCKER_STORAGE_OPTIONS= --data-root /docker-data --storage-driver=devicemapper  --storage-opt dm.basesize=40G
+
+- name: Reload Docker Daemon, Enable service docker, Start Docker service
+  service:
+    name: docker
+    daemon_reload: yes
+    enabled: yes
+    state: started
+
