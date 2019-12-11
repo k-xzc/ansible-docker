@@ -1,0 +1,8 @@
+- include_tasks: get-info.yml
+  when: action == 'get-info'
+
+- include_tasks: create.yml
+  when: action == 'create'  
+
+- include_tasks: terminate.yml
+  when: action == 'terminate'

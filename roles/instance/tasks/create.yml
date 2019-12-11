@@ -1,0 +1,46 @@
+---
+- name: Provisioning EC2 instances
+  block:
+  - name: Upload public key to AWS
+    ec2_key:
+      name: "{{ key_name }}"
+      key_material: "{{ lookup('file', '.{{ key_name }}.pub') }}"
+      region: "{{ region }}"
+      aws_access_key: "{{ec2_access_key}}"
+      aws_secret_key: "{{ec2_secret_key}}"
+  - name: Create security group
+    ec2_group:
+      name: "{{ sec_group }}"
+      description: "Sec group for app {{ instance_tag }}"
+      region: "{{ region }}"
+      aws_access_key: "{{ec2_access_key}}"
+      aws_secret_key: "{{ec2_secret_key}}"
+      rules:
+        - proto: tcp
+          ports:
+            - 22
+          cidr_ip: 0.0.0.0/0
+          rule_desc: allow all on ssh port
+    register: result_sec_group
+  - name: Provision instance(s)
+    ec2:
+      aws_access_key: "{{ec2_access_key}}"
+      aws_secret_key: "{{ec2_secret_key}}"
+      key_name: "{{ key_name }}"
+      group_id: "{{ result_sec_group.group_id }}"
+      #id: "{{ instance_tag }}"
+      image: "{{ image }}"
+      instance_type: t2.micro
+      region: "{{ region }}"
+      instance_tags: 
+        Name : "{{ instance_tag }}"
+      wait: true
+      #count: "{{ instances_num }}"
+      exact_count: "{{ instances_num }}"
+      count_tag: 
+        Name: "{{ instance_tag }}"
+      volumes:
+        - device_name: /dev/sdb
+          volume_size: 50
+          delete_on_termination: true
+      monitoring: yes

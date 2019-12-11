@@ -1,0 +1,15 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars:
+    key_name: aws_key
+    region: ap-southeast-1
+    image: ami-07539a31f72d244e7
+    instance_tag: "docker"
+    sec_group: "{{ instance_tag }}-sec"
+    instances_num: 2
+
+  roles:
+    - { role: instance , action: get-info } 
+    - { role: instance , action: terminate }
